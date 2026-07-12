@@ -186,7 +186,7 @@
     <div class="review" id="review"></div>
   </section>
 
-  <footer>Made for Kc · edit the WORDS list near the top of this file to use your own vocabulary.</footer>
+  <footer>Made by Vibhuti.</footer>
 </div>
 
 <!-- Firebase SDK — only used if you fill in FIREBASE_CONFIG in the script below.
@@ -360,16 +360,28 @@ function speechSupported(){
 function secureOrigin(){
   return window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1";
 }
+// iPhone / iPad detection (incl. iPadOS reporting as Mac)
+function isIOS(){
+  return /iP(hone|ad|od)/.test(navigator.userAgent) ||
+         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+// On iOS, only Safari can do speech. Chrome=CriOS, Firefox=FxiOS, Edge=EdgiOS, etc.
+function isIOSNonSafari(){
+  return isIOS() && /(CriOS|FxiOS|EdgiOS|OPiOS|GSA)/.test(navigator.userAgent);
+}
 
 function initHome(){
   $("wordCount").textContent = WORDS.length;
   $("lenLabel").textContent = fmtTime(ROUND_SECONDS);
   let msg = "";
-  if(!speechSupported()){
-    msg = "This browser doesn't support speech recognition. Use Chrome on desktop or Android, or play Text mode.";
+  if(isIOSNonSafari()){
+    msg = "On iPhone/iPad, voice mode can't run in Chrome, Firefox or Edge \u2014 Apple only allows speech in Safari. Open this page in Safari to try voice, or just use Text mode.";
+  }else if(!speechSupported()){
+    msg = "This browser doesn't support speech recognition. Voice works best in desktop Chrome; on iPhone use Safari. Text mode works everywhere.";
   }else if(!secureOrigin()){
-    msg = "Voice mode needs the page to run from a web address, not opened as a file. The microphone is blocked on file:// pages. " +
-          "Fix: open a terminal in this folder and run  python3 -m http.server  then visit  http://localhost:8000/swahilingo.html  — or host it on GitHub Pages. Text mode works either way.";
+    msg = "Voice mode needs the page to run from a web address (https), not opened as a file. Put it on GitHub Pages and open that link. (On a computer you can also run  python3 -m http.server  and use http://localhost:8000 .) Text mode works either way.";
+  }else if(isIOS()){
+    msg = "Heads up: on iPhone/iPad, Safari's speech support is limited and Swahili may not be recognized. If voice misbehaves, switch to Text mode.";
   }
   $("voiceWarn").textContent = msg;
   $("voiceWarn").classList.toggle("hidden", msg === "");
@@ -651,7 +663,9 @@ function showMicWarn(text){
 
 function toggleMic(){
   if(!speechSupported()){
-    showMicWarn("Speech recognition isn't available in this browser. Use Chrome, or switch to Text mode.");
+    showMicWarn(isIOS()
+      ? "On iPhone/iPad, voice only works in Safari (not Chrome/Firefox/Edge), and even there it's limited. Open this page in Safari, or use Text mode."
+      : "Speech recognition isn't available in this browser. Use desktop Chrome, or switch to Text mode.");
     return;
   }
   if(!secureOrigin()){

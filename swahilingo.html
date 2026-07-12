@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swahilingo · Learn Swahili</title>
+<style>
+  :root{
+    --bg:#0f1220; --card:#191d31; --card2:#20263f; --ink:#f4f6ff;
+    --muted:#9aa3c4; --accent:#38d39f; --accent2:#6c8cff;
+    --wrong:#ff6b6b; --right:#38d39f; --line:#2b3252;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%,#1b2140 0%,var(--bg) 55%);
+    color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex; align-items:flex-start; justify-content:center; padding:24px;
+    min-height:100%;
+  }
+  .app{width:100%; max-width:620px}
+  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px}
+  .brand{display:flex; align-items:baseline; gap:10px}
+  .brand h1{font-size:26px; margin:0; letter-spacing:.3px}
+  .brand span{color:var(--accent); font-weight:700}
+  .tag{color:var(--muted); font-size:13px}
+  .card{
+    background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);
+    border:1px solid var(--line); border-radius:18px; padding:26px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  .hidden{display:none !important}
+  h2{margin:0 0 6px; font-size:22px}
+  p.sub{color:var(--muted); margin:0 0 22px; line-height:1.5}
+  .modes{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .mode{
+    text-align:left; cursor:pointer; border:1px solid var(--line); border-radius:14px;
+    padding:18px; background:#161a2c; color:var(--ink); transition:.15s; font:inherit;
+  }
+  .mode:hover{border-color:var(--accent2); transform:translateY(-2px)}
+  .mode .emoji{font-size:26px}
+  .mode h3{margin:8px 0 4px; font-size:17px}
+  .mode small{color:var(--muted); line-height:1.4; display:block}
+  .row{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px}
+  .pill{background:#161a2c; border:1px solid var(--line); border-radius:999px; padding:8px 14px; font-size:14px; color:var(--muted)}
+  .pill b{color:var(--ink)}
+  .timer{font-variant-numeric:tabular-nums; font-size:20px; font-weight:700}
+  .timer.low{color:var(--wrong)}
+  .prompt-label{color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px}
+  .prompt{font-size:30px; font-weight:700; line-height:1.25; margin-bottom:6px}
+  .hint{color:var(--muted); font-size:14px; min-height:20px; margin-bottom:20px}
+  input[type=text]{
+    width:100%; padding:16px 18px; font-size:20px; border-radius:12px;
+    border:2px solid var(--line); background:#12162a; color:var(--ink); outline:none;
+  }
+  input[type=text]:focus{border-color:var(--accent2)}
+  .btns{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap}
+  button.primary,button.ghost,button.mic{
+    font:inherit; font-weight:600; border-radius:12px; padding:14px 20px; cursor:pointer; border:none; font-size:16px;
+  }
+  button.primary{background:var(--accent); color:#062018}
+  button.primary:hover{filter:brightness(1.05)}
+  button.ghost{background:transparent; color:var(--muted); border:1px solid var(--line)}
+  button.ghost:hover{color:var(--ink)}
+  button.mic{background:var(--accent2); color:#04102e; display:flex; align-items:center; gap:8px}
+  button.mic.listening{background:var(--wrong); color:#2a0000; animation:pulse 1s infinite}
+  @keyframes pulse{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
+  .feedback{margin-top:16px; min-height:26px; font-size:16px; font-weight:600}
+  .feedback.right{color:var(--right)}
+  .feedback.wrong{color:var(--wrong)}
+  .feedback small{display:block; color:var(--muted); font-weight:400; margin-top:2px}
+  .score-num{font-size:56px; font-weight:800; color:var(--accent); margin:6px 0}
+  .review{margin-top:18px; text-align:left; max-height:260px; overflow:auto; border-top:1px solid var(--line); padding-top:12px}
+  .review .item{display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid #232a45; font-size:15px}
+  .review .en{color:var(--muted)}
+  .review .sw{font-weight:600}
+  .review .miss .sw{color:var(--wrong)}
+  .review .ok .sw{color:var(--right)}
+  footer{margin-top:16px; text-align:center; color:var(--muted); font-size:12px}
+  .warn{background:#3a2140; border:1px solid #5a2f63; color:#ffd6f0; padding:10px 14px; border-radius:10px; font-size:14px; margin-top:14px}
+  .lb{margin-top:24px; border-top:1px solid var(--line); padding-top:18px}
+  .lb h3{margin:0 0 12px; font-size:15px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted)}
+  table.board{width:100%; border-collapse:collapse; font-size:14px}
+  table.board th{text-align:left; color:var(--muted); font-weight:600; padding:6px 8px; border-bottom:1px solid var(--line); font-size:12px; text-transform:uppercase; letter-spacing:.5px}
+  table.board td{padding:9px 8px; border-bottom:1px solid #232a45}
+  table.board tr:first-child td{color:var(--accent); font-weight:700}
+  table.board .rank{width:34px; color:var(--muted)}
+  table.board td.num{font-variant-numeric:tabular-nums}
+  .lb-empty{color:var(--muted); font-size:14px}
+  .save-row{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; align-items:center}
+  .save-row input{flex:1; min-width:160px; padding:12px 14px; font-size:16px; border-radius:10px; border:2px solid var(--line); background:#12162a; color:var(--ink); outline:none}
+  .save-row input:focus{border-color:var(--accent2)}
+  .saved-note{color:var(--accent); font-size:14px; margin-top:10px; min-height:18px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><h1><span>Swahi</span>lingo</h1></div>
+    <div class="tag">5-minute Swahili sprint</div>
+  </header>
+
+  <!-- HOME -->
+  <section id="home" class="card">
+    <h2>Choose your game</h2>
+    <p class="sub">You'll see an English word or phrase. Answer with the Swahili as fast as you can. Score as many as you can before the clock hits zero.</p>
+    <div class="modes">
+      <button class="mode" onclick="startGame('text')">
+        <div class="emoji">⌨️</div>
+        <h3>Text mode</h3>
+        <small>Type the Swahili. Works in any browser. Minor typos and missing accents are forgiven.</small>
+      </button>
+      <button class="mode" onclick="startGame('voice')">
+        <div class="emoji">🎤</div>
+        <h3>Voice mode</h3>
+        <small>Say the Swahili out loud. Uses your browser's speech recognition (best in Chrome).</small>
+      </button>
+    </div>
+    <div class="row" style="margin-top:22px; justify-content:flex-start; gap:10px; flex-wrap:wrap">
+      <span class="pill">Round length: <b id="lenLabel">5:00</b></span>
+      <span class="pill"><b id="wordCount">0</b> words loaded</span>
+    </div>
+    <div id="voiceWarn" class="warn hidden">Heads up: this browser doesn't support speech recognition, so voice mode may not work. Chrome on desktop or Android works best. Text mode always works.</div>
+
+    <div class="lb">
+      <h3>🏆 Leaderboard</h3>
+      <div id="homeBoard"></div>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" class="card hidden">
+    <div class="row">
+      <span class="pill">Score <b id="score">0</b></span>
+      <span class="timer" id="timer">5:00</span>
+      <button class="ghost" style="padding:8px 14px" onclick="endGame()">End</button>
+    </div>
+    <div class="prompt-label">Say / type in Swahili</div>
+    <div class="prompt" id="prompt">—</div>
+    <div class="hint" id="hint"></div>
+
+    <!-- text input -->
+    <div id="textInput">
+      <input type="text" id="answer" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type Swahili and press Enter…">
+      <div class="btns">
+        <button class="primary" onclick="submitText()">Check</button>
+        <button class="ghost" onclick="skip()">Skip</button>
+      </div>
+    </div>
+
+    <!-- voice input -->
+    <div id="voiceInput" class="hidden">
+      <div class="btns">
+        <button class="mic" id="micBtn" onclick="toggleMic()">🎤 <span>Tap to speak</span></button>
+        <button class="ghost" onclick="skip()">Skip</button>
+      </div>
+      <div class="hint" id="heard" style="margin-top:12px"></div>
+      <div id="micWarn" class="warn hidden"></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="card hidden">
+    <h2>Time!</h2>
+    <p class="sub" id="resultMode"></p>
+    <div class="score-num" id="finalScore">0</div>
+    <p class="sub" id="resultLine"></p>
+
+    <div class="save-row">
+      <input type="text" id="playerName" maxlength="20" placeholder="Your name for the leaderboard…" autocomplete="off">
+      <button class="primary" id="saveBtn" onclick="saveScore()">Save score</button>
+    </div>
+    <div class="saved-note" id="savedNote"></div>
+
+    <div class="btns" style="margin-top:14px">
+      <button class="ghost" onclick="goHome()">Play again</button>
+    </div>
+
+    <div class="lb">
+      <h3>🏆 Leaderboard</h3>
+      <div id="resultBoard"></div>
+    </div>
+
+    <div class="review" id="review"></div>
+  </section>
+
+  <footer>Made for Kc · edit the WORDS list near the top of this file to use your own vocabulary.</footer>
+</div>
+
+<!-- Firebase SDK — only used if you fill in FIREBASE_CONFIG in the script below.
+     Safe to leave in place; if you never configure it, the leaderboard stays local. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* =========================================================================
+   YOUR WORD LIST  —  EDIT HERE
+   -------------------------------------------------------------------------
+   Each entry:
+     en   : the English meaning shown as the prompt
+     sw   : the Swahili answer(s). Use an array if more than one is accepted.
+     hint : (optional) a small hint shown under the prompt
+   Add as many as you like. This starter set is just so the game runs today —
+   replace it with yours.
+   ========================================================================= */
+const WORDS = [
+  { en: "Hello", sw: ["Jambo"] },
+  { en: "How are you? (formal)", sw: ["Hujambo?"] },
+  { en: "I'm fine", sw: ["Sijambo"] },
+  { en: "How are things? / What's the news?", sw: ["Habari?"] },
+  { en: "Good / Fine", sw: ["Nzuri"] },
+  { en: "What's up? (casual)", sw: ["Mambo?"] },
+  { en: "Cool / I'm good", sw: ["Poa"] },
+  { en: "Respectful greeting to an elder", sw: ["Shikamoo"] },
+  { en: "Response to 'Shikamoo'", sw: ["Marahaba"] },
+  { en: "Please", sw: ["Tafadhali"] },
+  { en: "Thank you", sw: ["Asante"] },
+  { en: "Thank you very much", sw: ["Asante sana"] },
+  { en: "You're welcome / Welcome", sw: ["Karibu"] },
+  { en: "I'm sorry / That's unfortunate", sw: ["Pole"] },
+  { en: "I'm very sorry / I'm sorry to hear that", sw: ["Pole sana"] },
+  { en: "Excuse me / Sorry", sw: ["Samahani"] },
+  { en: "Yes", sw: ["Ndiyo"] },
+  { en: "No", sw: ["Hapana"] },
+  { en: "Okay", sw: ["Sawa"] },
+  { en: "Fine / Well", sw: ["Vizuri"] },
+  { en: "Maybe", sw: ["Labda"] },
+  { en: "Today", sw: ["Leo"] },
+  { en: "Tomorrow", sw: ["Kesho"] },
+  { en: "Yesterday", sw: ["Jana"] },
+  { en: "Now", sw: ["Sasa"] },
+  { en: "I'd like...", sw: ["Naomba..."] },
+  { en: "I'd like some water.", sw: ["Naomba maji."] },
+  { en: "Can you help me?", sw: ["Unaweza kunisaidia?"] },
+  { en: "I don't understand.", sw: ["Sielewi."] },
+  { en: "Please speak slowly.", sw: ["Tafadhali sema polepole."] },
+  { en: "Do you speak English?", sw: ["Unazungumza Kiingereza?"] },
+  { en: "How much is this?", sw: ["Hii ni bei gani?"] },
+  { en: "How much?", sw: ["Bei gani?"] },
+  { en: "Too expensive!", sw: ["Ghali sana!"] },
+  { en: "Lower the price.", sw: ["Punguza bei."] },
+  { en: "I'm just looking.", sw: ["Ninaangalia tu."] },
+  { en: "I want this.", sw: ["Nataka hii."] },
+  { en: "I don't have cash.", sw: ["Sina pesa taslimu."] },
+  { en: "I'll pay by M-Pesa.", sw: ["Ninalipa kwa M-Pesa."] },
+  { en: "Let's go.", sw: ["Twende."] },
+  { en: "Stop here.", sw: ["Simama hapa."] },
+  { en: "Left", sw: ["Kushoto"] },
+  { en: "Right", sw: ["Kulia"] },
+  { en: "Straight ahead", sw: ["Mbele"] },
+  { en: "A little faster", sw: ["Haraka kidogo"] },
+  { en: "Slowly", sw: ["Polepole"] },
+  { en: "I've arrived.", sw: ["Nimefika."] },
+  { en: "1", sw: ["moja"] },
+  { en: "2", sw: ["mbili"] },
+  { en: "3", sw: ["tatu"] },
+  { en: "4", sw: ["nne"] },
+  { en: "5", sw: ["tano"] },
+  { en: "6", sw: ["sita"] },
+  { en: "7", sw: ["saba"] },
+  { en: "8", sw: ["nane"] },
+  { en: "9", sw: ["tisa"] },
+  { en: "10", sw: ["kumi"] },
+  { en: "Water", sw: ["Maji"] },
+  { en: "Tea", sw: ["Chai"] },
+  { en: "Coffee", sw: ["Kahawa"] },
+  { en: "Food", sw: ["Chakula"] },
+  { en: "Meat", sw: ["Nyama"] },
+  { en: "Chicken", sw: ["Kuku"] },
+  { en: "Fish", sw: ["Samaki"] },
+  { en: "Vegetables", sw: ["Mboga"] },
+  { en: "Fruit", sw: ["Matunda"] },
+  { en: "Delicious", sw: ["Tamu"] },
+  { en: "Sounds good", sw: ["Sawa sawa"] },
+  { en: "No problem", sw: ["Hakuna shida"] },
+  { en: "No worries", sw: ["Hakuna matata"] },
+  { en: "Come again", sw: ["Karibu tena"] },
+  { en: "Good morning (literally: How is the morning?)", sw: ["Habari za asubuhi?"] },
+  { en: "How's work?", sw: ["Habari za kazi?"] },
+  { en: "How's work going?", sw: ["Kazi inaendeleaje?"] },
+  { en: "Welcome to the office.", sw: ["Karibu ofisini."] },
+  { en: "We're together / We're on the same page", sw: ["Tuko pamoja."] },
+  { en: "Thank you for your help.", sw: ["Asante kwa msaada."] },
+];
+/* ===================== END OF WORD LIST ===================== */
+
+const ROUND_SECONDS = 5 * 60;   // change round length here
+
+/* ---------- state ---------- */
+let mode = "text";
+let queue = [];
+let current = null;
+let score = 0;
+let secondsLeft = ROUND_SECONDS;
+let timerId = null;
+let history = [];   // {en, sw, ok}
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+
+function normalize(s){
+  return (s || "")
+    .toLowerCase()
+    .trim()
+    .normalize("NFD").replace(/[̀-ͯ]/g,"") // strip accents
+    .replace(/[^a-z0-9 ]/g,"")                       // strip punctuation
+    .replace(/\s+/g," ");
+}
+
+// Levenshtein distance for typo tolerance
+function lev(a,b){
+  const m=a.length, n=b.length;
+  const d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++) d[0][j]=j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      const cost=a[i-1]===b[j-1]?0:1;
+      d[i][j]=Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+cost);
+    }
+  }
+  return d[m][n];
+}
+
+// is the guess close enough to any accepted answer?
+function isCorrect(guess, accepted){
+  const g = normalize(guess);
+  if(!g) return false;
+  return accepted.some(ans=>{
+    const a = normalize(ans);
+    if(g === a) return true;
+    // allow small typos: tolerance scales with word length
+    const tol = a.length <= 4 ? 0 : a.length <= 7 ? 1 : 2;
+    return lev(g,a) <= tol;
+  });
+}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function acceptedList(w){ return Array.isArray(w.sw) ? w.sw : [w.sw]; }
+
+function fmtTime(s){
+  const m=Math.floor(s/60), sec=s%60;
+  return m+":"+String(sec).padStart(2,"0");
+}
+
+/* ---------- flow ---------- */
+function speechSupported(){
+  return ("SpeechRecognition" in window) || ("webkitSpeechRecognition" in window);
+}
+// Mic access requires a secure origin. file:// is NOT secure; localhost & https are.
+function secureOrigin(){
+  return window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+}
+
+function initHome(){
+  $("wordCount").textContent = WORDS.length;
+  $("lenLabel").textContent = fmtTime(ROUND_SECONDS);
+  let msg = "";
+  if(!speechSupported()){
+    msg = "This browser doesn't support speech recognition. Use Chrome on desktop or Android, or play Text mode.";
+  }else if(!secureOrigin()){
+    msg = "Voice mode needs the page to run from a web address, not opened as a file. The microphone is blocked on file:// pages. " +
+          "Fix: open a terminal in this folder and run  python3 -m http.server  then visit  http://localhost:8000/swahilingo.html  — or host it on GitHub Pages. Text mode works either way.";
+  }
+  $("voiceWarn").textContent = msg;
+  $("voiceWarn").classList.toggle("hidden", msg === "");
+  renderBoard("homeBoard");
+}
+
+function startGame(m){
+  if(WORDS.length === 0){ alert("Add some words to the WORDS list first."); return; }
+  mode = m;
+  score = 0; secondsLeft = ROUND_SECONDS; history = [];
+  queue = shuffle(WORDS);
+  $("score").textContent = "0";
+  $("home").classList.add("hidden");
+  $("results").classList.add("hidden");
+  $("play").classList.remove("hidden");
+  $("textInput").classList.toggle("hidden", m !== "text");
+  $("voiceInput").classList.toggle("hidden", m !== "voice");
+  if(m === "voice") setupRecognition();
+  startTimer();
+  nextWord();
+}
+
+function startTimer(){
+  clearInterval(timerId);
+  updateTimer();
+  timerId = setInterval(()=>{
+    secondsLeft--;
+    updateTimer();
+    if(secondsLeft <= 0) endGame();
+  },1000);
+}
+function updateTimer(){
+  const t=$("timer");
+  t.textContent = fmtTime(Math.max(0,secondsLeft));
+  t.classList.toggle("low", secondsLeft <= 30);
+}
+
+function nextWord(){
+  $("feedback").textContent = ""; $("feedback").className = "feedback";
+  $("heard").textContent = "";
+  if(queue.length === 0) queue = shuffle(WORDS);  // loop if they clear the deck
+  current = queue.shift();
+  $("prompt").textContent = current.en;
+  $("hint").textContent = current.hint ? "hint: " + current.hint : "";
+  if(mode === "text"){ $("answer").value=""; $("answer").focus(); }
+}
+
+function markResult(ok, guessShown){
+  history.push({ en: current.en, sw: acceptedList(current)[0], ok });
+  const fb=$("feedback");
+  if(ok){
+    score++; $("score").textContent = score;
+    fb.className="feedback right";
+    fb.innerHTML = "✅ Correct!";
+  }else{
+    fb.className="feedback wrong";
+    fb.innerHTML = "❌ Answer: <b>"+acceptedList(current).join(" / ")+"</b>" +
+      (guessShown ? "<small>you said: "+guessShown+"</small>" : "");
+  }
+  setTimeout(nextWord, ok ? 550 : 1300);
+}
+
+function submitText(){
+  if(!current) return;
+  const val = $("answer").value;
+  if(!val.trim()) return;
+  markResult(isCorrect(val, acceptedList(current)), null);
+}
+
+function skip(){
+  if(!current) return;
+  history.push({ en: current.en, sw: acceptedList(current)[0], ok:false });
+  const fb=$("feedback");
+  fb.className="feedback wrong";
+  fb.innerHTML = "⏭ Skipped — answer: <b>"+acceptedList(current).join(" / ")+"</b>";
+  setTimeout(nextWord, 900);
+}
+
+let lastRound = null;
+
+function endGame(){
+  clearInterval(timerId);
+  if(recognition){ try{ recognition.stop(); }catch(e){} }
+  $("play").classList.add("hidden");
+  $("results").classList.remove("hidden");
+  $("finalScore").textContent = score;
+  $("resultMode").textContent = (mode==="text"?"Text mode":"Voice mode") + " · " + fmtTime(ROUND_SECONDS) + " round";
+  const attempts = history.length;
+  const correct = history.filter(h=>h.ok).length;
+  const timeUsed = ROUND_SECONDS - Math.max(0, secondsLeft);
+  $("resultLine").textContent = correct + " correct out of " + attempts + " attempted · time used " + fmtTime(timeUsed) + ".";
+  lastRound = { score: correct, timeUsed, mode };
+
+  // reset save UI
+  $("savedNote").textContent = "";
+  $("saveBtn").disabled = false;
+  $("saveBtn").textContent = "Save score";
+  $("playerName").value = "";
+
+  const rev=$("review");
+  rev.innerHTML = "";
+  history.forEach(h=>{
+    const d=document.createElement("div");
+    d.className = "item " + (h.ok?"ok":"miss");
+    d.innerHTML = "<span class='en'>"+h.en+"</span><span class='sw'>"+h.sw+"</span>";
+    rev.appendChild(d);
+  });
+  renderBoard("resultBoard");
+}
+
+/* =========================================================================
+   LEADERBOARD  —  shared (Firebase) with automatic local fallback
+   -------------------------------------------------------------------------
+   To turn on a SHARED leaderboard that everyone sees, paste your Firebase
+   web-app config below (see SETUP_shared_leaderboard.md for click-by-click
+   steps). Until you do, scores are saved locally in this browser only and
+   the game works exactly as before.
+   ========================================================================= */
+const FIREBASE_CONFIG = {
+  apiKey:      "PASTE_API_KEY",
+  authDomain:  "PASTE_PROJECT_ID.firebaseapp.com",
+  projectId:   "PASTE_PROJECT_ID",
+  appId:       "PASTE_APP_ID"
+};
+/* ===================== END OF FIREBASE CONFIG ===================== */
+
+const LB_KEY = "swahilingo_leaderboard_v1";
+let boardCache = [];   // in-memory fallback if localStorage is blocked
+let db = null;         // Firestore handle when shared mode is active
+let SHARED = false;
+
+function initLeaderboard(){
+  const configured = FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes("PASTE");
+  if(configured && window.firebase && firebase.firestore){
+    try{
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.firestore();
+      SHARED = true;
+    }catch(e){ SHARED = false; console.warn("Firebase init failed, using local leaderboard:", e); }
+  }
+}
+
+function loadLocal(){
+  try{ const raw = localStorage.getItem(LB_KEY); return raw ? JSON.parse(raw) : []; }
+  catch(e){ return boardCache; }
+}
+function storeLocal(list){
+  boardCache = list;
+  try{ localStorage.setItem(LB_KEY, JSON.stringify(list)); }catch(e){}
+}
+
+// rank: most words first; ties broken by less time used; then earlier timestamp
+function rankBoard(list){
+  return [...list].sort((a,b)=> b.score - a.score || a.timeUsed - b.timeUsed || a.ts - b.ts);
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+async function fetchScores(){
+  if(SHARED && db){
+    try{
+      const snap = await db.collection("scores").orderBy("score","desc").limit(200).get();
+      return snap.docs.map(d=>d.data());
+    }catch(e){ console.warn("Shared leaderboard read failed, showing local:", e); }
+  }
+  return loadLocal();
+}
+
+async function renderBoard(targetId, highlightTs){
+  const el = $(targetId);
+  if(!el) return;
+  el.innerHTML = "<div class='lb-empty'>Loading…</div>";
+  const list = rankBoard(await fetchScores()).slice(0,10);
+  if(list.length === 0){
+    el.innerHTML = "<div class='lb-empty'>No scores yet"+(SHARED?"":" (this browser only)")+". Play a round and save yours!</div>";
+    return;
+  }
+  let rows = "";
+  list.forEach((e,i)=>{
+    const hl = (highlightTs && e.ts === highlightTs) ? " style='background:#20304a'" : "";
+    rows += "<tr"+hl+">"+
+      "<td class='rank'>"+(i+1)+"</td>"+
+      "<td>"+esc(e.name)+"</td>"+
+      "<td class='num'>"+e.score+"</td>"+
+      "<td class='num'>"+fmtTime(e.timeUsed)+"</td>"+
+      "<td>"+esc(e.date)+"</td>"+
+    "</tr>";
+  });
+  const scope = SHARED ? "" : "<div class='lb-empty' style='margin-top:8px'>Local to this browser — set up Firebase to share.</div>";
+  el.innerHTML =
+    "<table class='board'><thead><tr>"+
+      "<th class='rank'>#</th><th>Player</th><th>Words</th><th>Time</th><th>Date</th>"+
+    "</tr></thead><tbody>"+rows+"</tbody></table>"+scope;
+}
+
+async function saveScore(){
+  if(!lastRound){ return; }
+  const name = (($("playerName").value || "").trim().slice(0,20)) || "Anonymous";
+  const ts = Date.now();
+  const date = new Date(ts).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+  const entry = { name, score: lastRound.score, timeUsed: lastRound.timeUsed, mode: lastRound.mode, date, ts };
+
+  $("saveBtn").disabled = true;
+  $("saveBtn").textContent = "Saving…";
+
+  if(SHARED && db){
+    try{ await db.collection("scores").add(entry); }
+    catch(e){
+      const list = loadLocal(); list.push(entry); storeLocal(list);
+      $("savedNote").textContent = "Couldn't reach the shared leaderboard — saved locally instead.";
+    }
+  }else{
+    const list = loadLocal(); list.push(entry); storeLocal(list);
+  }
+
+  const ranked = rankBoard(await fetchScores());
+  const rank = ranked.findIndex(e=>e.ts===ts) + 1;
+  if(!$("savedNote").textContent){
+    $("savedNote").textContent = "Saved!" + (rank>0 ? " You're ranked #"+rank+" of "+ranked.length+"." : "");
+  }
+  $("saveBtn").textContent = "Saved ✓";
+  renderBoard("resultBoard", ts);
+}
+
+function goHome(){
+  $("results").classList.add("hidden");
+  $("home").classList.remove("hidden");
+  renderBoard("homeBoard");
+}
+
+/* ---------- voice ---------- */
+let recognition = null;
+let listening = false;
+
+function setupRecognition(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ recognition = null; return; }
+  if(recognition) return;
+  recognition = new SR();
+  recognition.lang = "sw-KE";        // Swahili (Kenya). Try "sw-TZ" for Tanzania.
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 3;
+  recognition.continuous = false;
+
+  recognition.onresult = (e)=>{
+    const alts = [];
+    for(let i=0;i<e.results[0].length;i++) alts.push(e.results[0][i].transcript);
+    const heard = alts[0] || "";
+    $("heard").textContent = "heard: " + heard;
+    // accept if ANY alternative matches
+    const ok = alts.some(a => isCorrect(a, acceptedList(current)));
+    markResult(ok, heard);
+  };
+  recognition.onerror = (e)=>{
+    let m;
+    switch(e.error){
+      case "not-allowed":
+      case "service-not-allowed":
+        m = "Microphone permission denied. Click the camera/mic icon in the address bar and allow it, then try again.";
+        break;
+      case "no-speech": m = "Didn't catch anything — tap the mic and speak clearly."; break;
+      case "network":   m = "Network error reaching the speech service. Voice needs an internet connection (and a web address, not a file)."; break;
+      case "language-not-supported": m = "Swahili isn't available in this browser's speech engine. Try latest Chrome, or use Text mode."; break;
+      default: m = "Mic error: " + e.error + " — try again or use Text mode.";
+    }
+    showMicWarn(m);
+    stopListeningUI();
+  };
+  recognition.onend = ()=> stopListeningUI();
+}
+
+function showMicWarn(text){
+  const w=$("micWarn");
+  w.textContent = text;
+  w.classList.toggle("hidden", !text);
+}
+
+function toggleMic(){
+  if(!speechSupported()){
+    showMicWarn("Speech recognition isn't available in this browser. Use Chrome, or switch to Text mode.");
+    return;
+  }
+  if(!secureOrigin()){
+    showMicWarn("The mic is blocked because this page was opened as a file. Run  python3 -m http.server  in this folder and open  http://localhost:8000/swahilingo.html  — then voice mode will work.");
+    return;
+  }
+  if(!recognition) setupRecognition();
+  if(!recognition){ showMicWarn("Could not start speech recognition."); return; }
+  if(listening){ try{ recognition.stop(); }catch(e){} return; }
+  try{
+    recognition.start();
+    listening = true;
+    showMicWarn("");
+    $("micBtn").classList.add("listening");
+    $("micBtn").querySelector("span").textContent = "Listening… tap to stop";
+    $("heard").textContent = "";
+  }catch(e){
+    showMicWarn("Mic didn't start: " + e.message + ". Tap again, or allow microphone access when your browser asks.");
+  }
+}
+function stopListeningUI(){
+  listening = false;
+  const b=$("micBtn");
+  b.classList.remove("listening");
+  b.querySelector("span").textContent = "Hold to speak";
+}
+
+/* ---------- keyboard ---------- */
+document.addEventListener("keydown",(e)=>{
+  if($("play").classList.contains("hidden")) return;
+  if(e.key === "Enter" && mode==="text") submitText();
+  if(e.key === " " && mode==="voice" && !listening){ e.preventDefault(); toggleMic(); }
+});
+
+initLeaderboard();
+initHome();
+</script>
+</body>
+</html>
